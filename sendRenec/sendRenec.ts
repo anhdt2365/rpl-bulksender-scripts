@@ -1,5 +1,4 @@
 import * as anchor from '@project-serum/anchor'
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, createTransferInstruction, getOrCreateAssociatedTokenAccount } from "spl-token"; // version 0.2.0
 import {
   PublicKey,
   Connection,
@@ -7,6 +6,7 @@ import {
   Commitment,
   LAMPORTS_PER_SOL,
   sendAndConfirmTransaction,
+  SystemProgram,
 } from "@solana/web3.js";
 import fs from 'fs';
 import csv from 'csv-parser';
@@ -14,7 +14,7 @@ import * as bs58 from "bs58";
 require("dotenv").config();
 
 // Specify the path to your CSV file
-const csvFilePath = './result/rcc.csv';
+const csvFilePath = './input/day6.csv';
 // const csvFilePath = './result/output.csv';
 
 // Create an array to store the CSV data
@@ -27,7 +27,7 @@ fs.createReadStream(csvFilePath)
   .on('data', (row) => {
     // Assuming there's only one column in the CSV
     const columnAddressValue = row['Addresses'];
-    const columnAmountValue = row['Reward'];
+    const columnAmountValue = row['Amount'];
     csvAddress.push(columnAddressValue);
     csvAmount.push(columnAmountValue);
   })
@@ -38,42 +38,24 @@ fs.createReadStream(csvFilePath)
     // const connection = new Connection("https://api-testnet.renec.foundation:8899", { commitment });
     // const connection = new Connection("http://localhost:8899", { commitment });
 
-    const token = new PublicKey("HtzrB8LihudQnWPdtK5rMnyExor8jaufXLJeKybxgBzM");
-    const sourceTokenAccount = await getOrCreateAssociatedTokenAccount(
-      connection,
-      admin,
-      token,
-      admin.publicKey
-    );
-
     // GET BALANCE BEFORE
     let balanceBefore = await connection.getBalance(admin.publicKey);
     console.log(`${balanceBefore / LAMPORTS_PER_SOL} SOL`);
 
-    const groupSize = 7;
+    const groupSize = 21;
 
     for (let i = 0; i < csvAddress.length; i += groupSize) {
       const groupAddress = csvAddress.slice(i, i + groupSize);
       const groupAmount = csvAmount.slice(i, i + groupSize);
 
-      console.log(`Start create ATA from element ${i} to ${i + groupSize}`);
+      console.log(`Start send RENEC from element ${i} to ${i + groupSize}`);
       const tx = new anchor.web3.Transaction();
       for (let j = 0; j < groupAddress.length; j++) {
-        const ata = PublicKey.findProgramAddressSync(
-          [
-            new PublicKey(groupAddress[j]).toBuffer(),
-            TOKEN_PROGRAM_ID.toBuffer(),
-            token.toBuffer(),
-          ],
-          ASSOCIATED_TOKEN_PROGRAM_ID
-        )[0];
-
-        const transferInstruction = createTransferInstruction(
-          sourceTokenAccount.address,
-          ata,
-          admin.publicKey,
-          groupAmount[j] * LAMPORTS_PER_SOL
-        );
+        const transferInstruction = SystemProgram.transfer({
+          fromPubkey: admin.publicKey,
+          toPubkey: new PublicKey(groupAddress[j]),
+          lamports: groupAmount[j] * LAMPORTS_PER_SOL,
+        });
         tx.add(transferInstruction);
       }
 
@@ -83,7 +65,6 @@ fs.createReadStream(csvFilePath)
 
       console.log("🚀 ~ file: initialize.ts:25 ~ main ~ txSignature:", txSignature);
     };
-
 
     // GET BALANCE AFTER
     let balanceAfter = await connection.getBalance(admin.publicKey);

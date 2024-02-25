@@ -35,7 +35,7 @@ fs.createReadStream(csvFilePath)
     const connection = new Connection("https://api-mainnet-beta.renec.foundation:8899", { commitment });
     // const connection = new Connection("http://localhost:8899", { commitment });
 
-    const token = new PublicKey("B9jQmcsGpXgdN4KnTZgJ5syngtVvJhRqtJ3nEi3CJ6Nx");
+    const token = new PublicKey("HtzrB8LihudQnWPdtK5rMnyExor8jaufXLJeKybxgBzM");
 
     // GET BALANCE BEFORE
     let balanceBefore = await connection.getBalance(admin.publicKey);

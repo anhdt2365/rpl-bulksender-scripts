@@ -12,7 +12,7 @@ async function main() {
   const admin = Keypair.fromSecretKey(bs58.decode(process.env.PRIV_KEY || ""));
   const commitment: Commitment = "confirmed";
   const connection = new Connection("http://localhost:8899", { commitment });
-  let balanceBefore = await connection.getBalance(admin.publicKey);
+  let balanceBefore = await connection.getBalance(new PublicKey("49TKs6CPCZLZ72f4ZBoLW3w32fLnu8C78oNcZyMWdUbJ"));
   console.log(`${balanceBefore / LAMPORTS_PER_SOL} SOL`);
 }
 
