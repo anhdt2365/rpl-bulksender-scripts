@@ -14,7 +14,7 @@ import * as bs58 from "bs58";
 require("dotenv").config();
 
 // Specify the path to your CSV file
-const csvFilePath = './input/day6.csv';
+const csvFilePath = './input/day15_0103.csv';
 // const csvFilePath = './result/output.csv';
 
 // Create an array to store the CSV data

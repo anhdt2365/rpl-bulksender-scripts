@@ -24,7 +24,7 @@ fs.createReadStream(csvFilePath)
   .pipe(csv())
   .on('data', (row) => {
     // Assuming there's only one column in the CSV
-    const columnValue = row['Address'];
+    const columnValue = row['Addresses'];
     csvData.push(columnValue);
   })
   .on('end', async () => {
@@ -35,7 +35,9 @@ fs.createReadStream(csvFilePath)
     const connection = new Connection("https://api-mainnet-beta.renec.foundation:8899", { commitment });
     // const connection = new Connection("http://localhost:8899", { commitment });
 
-    const token = new PublicKey("HtzrB8LihudQnWPdtK5rMnyExor8jaufXLJeKybxgBzM");
+    // const token = new PublicKey("HtzrB8LihudQnWPdtK5rMnyExor8jaufXLJeKybxgBzM"); // PROP
+    // const token = new PublicKey("4Q89182juiadeFgGw3fupnrwnnDmBhf7e7fHWxnUP3S3"); // USDT
+    const token = new PublicKey("AbQFBJZAFWNq3cG8phggbgdFMf1cfr81p3NiuputoorJ") // SHP
 
     // GET BALANCE BEFORE
     let balanceBefore = await connection.getBalance(admin.publicKey);

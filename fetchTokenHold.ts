@@ -1,9 +1,12 @@
 import * as anchor from '@project-serum/anchor'
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAccount } from "spl-token"; // version 0.2.0
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAccount } from "spl-token"; // version 0.2.0
 import {
   PublicKey,
   Connection,
+  Keypair,
   Commitment,
+  LAMPORTS_PER_SOL,
+  Transaction,
 } from "@solana/web3.js";
 import fs from 'fs';
 import csv from 'csv-parser';
@@ -12,20 +15,20 @@ import * as bs58 from "bs58";
 require("dotenv").config();
 
 // Specify the path to your CSV file
-const csvFilePath = './result/data.csv';
-const csvOutputFilePath = './result/out.csv';
+const csvFilePath = './result/address.csv';
+const csvOutputFilePath = './result/holder.csv';
 
 // Create an array to store the CSV data
 const csvData: string[] = [];
 const data: string[] = [];
-data.push('Addresses');
+data.push('Address');
 
 // Read the CSV file and store the data in the array
 fs.createReadStream(csvFilePath)
   .pipe(csv())
   .on('data', (row) => {
     // Assuming there's only one column in the CSV
-    const columnValue = row['Addresses'];
+    const columnValue = row['Address'];
     csvData.push(columnValue);
   })
   .on('end', async () => {
@@ -34,10 +37,8 @@ fs.createReadStream(csvFilePath)
     const connection = new Connection("https://api-mainnet-beta.renec.foundation:8899", { commitment });
     // const connection = new Connection("http://localhost:8899", { commitment });
 
-    // const token = new PublicKey("4Q89182juiadeFgGw3fupnrwnnDmBhf7e7fHWxnUP3S3"); // USDT
-    // const token = new PublicKey("HtzrB8LihudQnWPdtK5rMnyExor8jaufXLJeKybxgBzM"); // PROP
-    const token = new PublicKey("AbQFBJZAFWNq3cG8phggbgdFMf1cfr81p3NiuputoorJ") // SHP
-    // const token = new PublicKey("2FuufJ23BJZZVZgE1QQGaUEMmuQ9Cf9iGwaTti1dE5ob");
+    // const token = new PublicKey("GvTwnAQLTdM6fMZbuGQoVj5odefCC2FsDvaMgxqZV1fi"); // GAST
+    const token = new PublicKey("HtzrB8LihudQnWPdtK5rMnyExor8jaufXLJeKybxgBzM"); // PROP
 
     for (let j = 0; j < csvData.length; j++) {
       const ata = PublicKey.findProgramAddressSync(
@@ -48,10 +49,13 @@ fs.createReadStream(csvFilePath)
         ],
         ASSOCIATED_TOKEN_PROGRAM_ID
       )[0];
+      let ataInfo;
       try {
-        console.log(await getAccount(connection, ata));
+        await getAccount(connection, ata);
+        ataInfo = await connection.getTokenAccountBalance(ata);
+        data.push(csvData[j] + ',' + ataInfo.value.uiAmount);
       } catch (e) {
-        data.push(csvData[j]);
+        data.push(csvData[j] + ',0');
       }
     }
 
